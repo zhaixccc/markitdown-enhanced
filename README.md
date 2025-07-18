@@ -210,7 +210,7 @@ for file in files:
 ### 安装步骤
 ```bash
 # 1. 克隆项目
-git clone https://github.com/your-username/markitdown-enhanced.git
+git clone https://github.com/zhaixccc/markitdown-enhanced.git
 cd markitdown-enhanced
 
 # 2. 安装依赖
