@@ -1,0 +1,14 @@
+{
+  "enable_plugins": false,
+  "docintel_endpoint": "",
+  "azure_openai_endpoint": "https://your-resource.openai.azure.com/",
+  "azure_openai_api_key": "your-api-key-here",
+  "azure_openai_deployment": "your-deployment-name",
+  "azure_openai_api_version": "2024-08-01-preview",
+  "llm_model": "gpt-4o",
+  "use_chinese_prompt": true,
+  "custom_prompt": "请用中文详细描述这张图片的内容。包括：1)图片中的所有文字内容；2)图表、表格、数据信息；3)图片的整体布局和设计；4)任何重要的视觉元素。请确保描述准确、详细且易于理解。",
+  "smart_pdf_processing": true,
+  "auto_save_results": false,
+  "preview_mode": true
+}

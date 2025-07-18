@@ -165,3 +165,21 @@ cython_debug/
 src/.DS_Store
 .DS_Store
 .cursorrules
+
+# 敏感配置文件
+markitdown_gui_config.json
+*config*.json
+!*config*.template.json
+*.env
+.env.*
+
+# 临时文件和测试输出
+*.tmp
+*.temp
+test_*.md
+*_converted.md
+result_*.md
+
+# 用户生成的文件
+DGPU流程图.md
+DGPU流程图.smart.md
