@@ -1,248 +1,367 @@
-# MarkItDown
+# MarkItDown 智能PDF处理增强版 - 项目说明
 
-[![PyPI](https://img.shields.io/pypi/v/markitdown.svg)](https://pypi.org/project/markitdown/)
-![PyPI - Downloads](https://img.shields.io/pypi/dd/markitdown)
-[![Built by AutoGen Team](https://img.shields.io/badge/Built%20by-AutoGen%20Team-blue)](https://github.com/microsoft/autogen)
+## 🎯 项目概述
 
-> [!TIP]
-> MarkItDown now offers an MCP (Model Context Protocol) server for integration with LLM applications like Claude Desktop. See [markitdown-mcp](https://github.com/microsoft/markitdown/tree/main/packages/markitdown-mcp) for more information.
+本项目是基于Microsoft AutoGen团队的MarkItDown库进行的增强版本，主要添加了**智能PDF图片处理功能**和**现代化GUI界面**。核心特色是通过智能检测PDF中的图片，只对包含图片的PDF调用AI分析，从而实现成本优化和处理效率的双重提升。
 
-> [!IMPORTANT]
-> Breaking changes between 0.0.1 to 0.1.0:
-> * Dependencies are now organized into optional feature-groups (further details below). Use `pip install 'markitdown[all]'` to have backward-compatible behavior. 
-> * convert\_stream() now requires a binary file-like object (e.g., a file opened in binary mode, or an io.BytesIO object). This is a breaking change from the previous version, where it previously also accepted text file-like objects, like io.StringIO.
-> * The DocumentConverter class interface has changed to read from file-like streams rather than file paths. *No temporary files are created anymore*. If you are the maintainer of a plugin, or custom DocumentConverter, you likely need to update your code. Otherwise, if only using the MarkItDown class or CLI (as in these examples), you should not need to change anything.
+## 🚀 核心功能增强
 
-MarkItDown is a lightweight Python utility for converting various files to Markdown for use with LLMs and related text analysis pipelines. To this end, it is most comparable to [textract](https://github.com/deanmalmgren/textract), but with a focus on preserving important document structure and content as Markdown (including: headings, lists, tables, links, etc.) While the output is often reasonably presentable and human-friendly, it is meant to be consumed by text analysis tools -- and may not be the best option for high-fidelity document conversions for human consumption.
+### 1. 智能PDF图片处理
 
-MarkItDown currently supports the conversion from:
+#### 🔍 智能检测机制
+- **预检测算法**: 使用PyMuPDF快速扫描PDF页面，检测是否包含图片
+- **尺寸过滤**: 自动跳过小于50x50像素的装饰性图片
+- **成本优化**: 只对包含图片的PDF调用Azure OpenAI API
 
-- PDF
-- PowerPoint
-- Word
-- Excel
-- Images (EXIF metadata and OCR)
-- Audio (EXIF metadata and speech transcription)
-- HTML
-- Text-based formats (CSV, JSON, XML)
-- ZIP files (iterates over contents)
-- Youtube URLs
-- EPubs
-- ... and more!
+#### 🖼️ AI图片分析
+- **Azure OpenAI集成**: 使用GPT-4o模型对图片进行详细描述
+- **中文优化**: 支持自定义中文提示词，生成准确的中文描述
+- **多模态处理**: 将图片描述与文本内容完美结合
 
-## Why Markdown?
-
-Markdown is extremely close to plain text, with minimal markup or formatting, but still
-provides a way to represent important document structure. Mainstream LLMs, such as
-OpenAI's GPT-4o, natively "_speak_" Markdown, and often incorporate Markdown into their
-responses unprompted. This suggests that they have been trained on vast amounts of
-Markdown-formatted text, and understand it well. As a side benefit, Markdown conventions
-are also highly token-efficient.
-
-## Prerequisites
-MarkItDown requires Python 3.10 or higher. It is recommended to use a virtual environment to avoid dependency conflicts.
-
-With the standard Python installation, you can create and activate a virtual environment using the following commands:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
+#### 💰 成本效益
+```
+处理场景对比：
+┌─────────────────┬──────────────┬──────────────┬──────────┐
+│ 文档类型        │ 传统方式     │ 智能方式     │ 节省效果 │
+├─────────────────┼──────────────┼──────────────┼──────────┤
+│ 无图片PDF(100个)│ 100次API调用 │ 0次API调用   │ 100%     │
+│ 有图片PDF(10个) │ 10次API调用  │ 10次API调用  │ 0%       │
+│ 混合场景(90+10) │ 100次API调用 │ 10次API调用  │ 90%      │
+└─────────────────┴──────────────┴──────────────┴──────────┘
 ```
 
-If using `uv`, you can create a virtual environment with:
+### 2. 现代化GUI界面
 
-```bash
-uv venv --python=3.12 .venv
-source .venv/bin/activate
-# NOTE: Be sure to use 'uv pip install' rather than just 'pip install' to install packages in this virtual environment
-```
+#### 🎨 界面设计
+- **Modern UI**: 使用CustomTkinter构建现代化界面
+- **响应式布局**: 自适应窗口大小，支持最小化和最大化
+- **主题支持**: 支持浅色和深色主题切换
 
-If you are using Anaconda, you can create a virtual environment with:
+#### 📊 智能状态显示
+- **双状态栏**: 主状态显示 + 详细信息显示
+- **实时反馈**: 显示文件信息、处理进度、成本提示
+- **智能提示**: 根据文件类型显示相应的处理策略
 
-```bash
-conda create -n markitdown python=3.12
-conda activate markitdown
-```
+#### 🔧 功能特性
+- **拖拽支持**: 支持文件拖拽到界面
+- **预览功能**: 快速预览转换效果（不使用AI）
+- **配置管理**: 完整的Azure OpenAI配置界面
+- **结果统计**: 详细的转换统计信息
 
-## Installation
+## 🛠️ 技术实现细节
 
-To install MarkItDown, use pip: `pip install 'markitdown[all]'`. Alternatively, you can install it from the source:
+### 核心代码修改
 
-```bash
-git clone git@github.com:microsoft/markitdown.git
-cd markitdown
-pip install -e 'packages/markitdown[all]'
-```
-
-## Usage
-
-### Command-Line
-
-```bash
-markitdown path-to-file.pdf > document.md
-```
-
-Or use `-o` to specify the output file:
-
-```bash
-markitdown path-to-file.pdf -o document.md
-```
-
-You can also pipe content:
-
-```bash
-cat path-to-file.pdf | markitdown
-```
-
-### Optional Dependencies
-MarkItDown has optional dependencies for activating various file formats. Earlier in this document, we installed all optional dependencies with the `[all]` option. However, you can also install them individually for more control. For example:
-
-```bash
-pip install 'markitdown[pdf, docx, pptx]'
-```
-
-will install only the dependencies for PDF, DOCX, and PPTX files.
-
-At the moment, the following optional dependencies are available:
-
-* `[all]` Installs all optional dependencies
-* `[pptx]` Installs dependencies for PowerPoint files
-* `[docx]` Installs dependencies for Word files
-* `[xlsx]` Installs dependencies for Excel files
-* `[xls]` Installs dependencies for older Excel files
-* `[pdf]` Installs dependencies for PDF files
-* `[outlook]` Installs dependencies for Outlook messages
-* `[az-doc-intel]` Installs dependencies for Azure Document Intelligence
-* `[audio-transcription]` Installs dependencies for audio transcription of wav and mp3 files
-* `[youtube-transcription]` Installs dependencies for fetching YouTube video transcription
-
-### Plugins
-
-MarkItDown also supports 3rd-party plugins. Plugins are disabled by default. To list installed plugins:
-
-```bash
-markitdown --list-plugins
-```
-
-To enable plugins use:
-
-```bash
-markitdown --use-plugins path-to-file.pdf
-```
-
-To find available plugins, search GitHub for the hashtag `#markitdown-plugin`. To develop a plugin, see `packages/markitdown-sample-plugin`.
-
-### Azure Document Intelligence
-
-To use Microsoft Document Intelligence for conversion:
-
-```bash
-markitdown path-to-file.pdf -o document.md -d -e "<document_intelligence_endpoint>"
-```
-
-More information about how to set up an Azure Document Intelligence Resource can be found [here](https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/how-to-guides/create-document-intelligence-resource?view=doc-intel-4.0.0)
-
-### Python API
-
-Basic usage in Python:
+#### 1. PDF转换器增强 (`_pdf_converter.py`)
 
 ```python
-from markitdown import MarkItDown
-
-md = MarkItDown(enable_plugins=False) # Set to True to enable plugins
-result = md.convert("test.xlsx")
-print(result.text_content)
+def _check_pdf_has_images(self, file_stream: BinaryIO) -> bool:
+    """智能检测PDF是否包含图片"""
+    # 使用PyMuPDF快速扫描
+    # 过滤装饰性小图片
+    # 早期退出优化
 ```
 
-Document Intelligence conversion in Python:
+**主要改进**:
+- 添加了`_check_pdf_has_images()`方法进行预检测
+- 修改了`convert()`方法的处理逻辑
+- 集成了LLM图片描述功能
 
+#### 2. 依赖管理优化 (`pyproject.toml`)
+
+```toml
+[project.optional-dependencies]
+pdf = ["pdfminer.six"]
+pdf-images = ["pdfminer.six", "PyMuPDF"]  # 新增
+```
+
+**改进内容**:
+- 新增`pdf-images`可选依赖组
+- 支持按需安装PyMuPDF
+- 保持向后兼容性
+
+#### 3. GUI应用 (`markitdown_gui.py`)
+
+**核心特性**:
+- 智能PDF处理状态显示
+- Azure OpenAI配置管理
+- 中文提示词自定义
+- 预览和转换功能分离
+
+## 📱 GUI界面详细介绍
+
+### 主界面布局
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ MarkItDown GUI - 文档转换工具                           │
+├─────────────────────────────────────────────────────────┤
+│ 📁 文件选择区域                                         │
+│   [选择文件] [拖拽文件到此处]                           │
+│   支持格式: PDF, DOCX, PPTX, XLSX, 图片等              │
+│   💡 智能PDF处理：自动检测图片，节省成本                │
+├─────────────────────────────────────────────────────────┤
+│ ⚙️ 选项设置                                             │
+│   ☑️ 启用插件  ☑️ 智能PDF处理                          │
+├─────────────────────────────────────────────────────────┤
+│ 🎛️ 操作按钮                                             │
+│   [🤖 模型配置] [👁️ 预览] [🔄 转换为Markdown]          │
+├─────────────────────────────────────────────────────────┤
+│ 📄 输出区域                                             │
+│   [转换结果显示区域]                                    │
+│                                                         │
+├─────────────────────────────────────────────────────────┤
+│ 📊 状态栏                                               │
+│   主状态: 准备就绪                                      │
+│   详细信息: 等待文件选择...                             │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 配置界面
+
+**Azure OpenAI配置**:
+- API Key输入（密码模式）
+- Endpoint地址配置
+- Deployment名称设置
+- 中文提示词自定义
+
+**智能处理选项**:
+- 智能PDF处理开关
+- 插件启用选项
+- 自动保存设置
+
+## 🎯 使用方法
+
+### 基础使用流程
+
+1. **启动应用**
+   ```bash
+   python markitdown_gui.py
+   ```
+
+2. **配置Azure OpenAI**（首次使用）
+   - 点击"🤖 模型配置"
+   - 填入您的Azure OpenAI配置信息
+   - 自定义中文提示词（可选）
+
+3. **选择文件**
+   - 点击"选择文件"按钮
+   - 或直接拖拽文件到界面
+
+4. **预览或转换**
+   - **预览**: 快速查看转换效果（不使用AI）
+   - **转换**: 完整转换，包含AI图片分析
+
+5. **查看结果**
+   - 在输出区域查看Markdown结果
+   - 查看详细的转换统计信息
+
+### 智能PDF处理示例
+
+#### 场景1: 无图片PDF
+```
+📄 选择文件: 纯文本文档.pdf (2.5MB)
+🔍 智能检测: 未发现图片
+⚡ 处理结果: 0.05秒完成，节省API成本
+📊 输出统计: 5000字符，0张图片
+```
+
+#### 场景2: 图文混合PDF
+```
+📄 选择文件: 技术报告.pdf (8.2MB)
+🔍 智能检测: 发现6张图片
+🤖 AI分析: 使用GPT-4o分析图片内容
+📊 输出统计: 12000字符，6张图片描述
+⏱️ 处理时间: 45秒（包含AI分析）
+```
+
+### 高级功能
+
+#### 自定义提示词
+```
+默认提示词：
+"请用中文详细描述这张图片的内容。包括：
+1)图片中的所有文字内容
+2)图表、表格、数据信息  
+3)图片的整体布局和设计
+4)任何重要的视觉元素"
+
+自定义示例：
+"请专注描述这张图片中的技术架构图，
+包括组件名称、连接关系和数据流向。"
+```
+
+#### 批量处理建议
 ```python
-from markitdown import MarkItDown
-
-md = MarkItDown(docintel_endpoint="<document_intelligence_endpoint>")
-result = md.convert("test.pdf")
-print(result.text_content)
+# 对于大量PDF文件的处理建议
+files = ["doc1.pdf", "doc2.pdf", "doc3.pdf"]
+for file in files:
+    # GUI会自动检测每个文件是否需要AI分析
+    # 只对包含图片的文件调用API
+    result = process_file(file)
 ```
 
-To use Large Language Models for image descriptions, provide `llm_client` and `llm_model`:
+## 🔧 安装和配置
 
-```python
-from markitdown import MarkItDown
-from openai import OpenAI
+### 环境要求
+- Python 3.10+
+- Windows/Linux/macOS
 
-client = OpenAI()
-md = MarkItDown(llm_client=client, llm_model="gpt-4o")
-result = md.convert("example.jpg")
-print(result.text_content)
+### 安装步骤
+```bash
+# 1. 克隆项目
+git clone https://github.com/your-username/markitdown-enhanced.git
+cd markitdown-enhanced
+
+# 2. 安装依赖
+pip install -e packages/markitdown[all]
+pip install customtkinter openai
+
+# 3. 运行GUI
+python markitdown_gui.py
 ```
 
-### Docker
+### Azure OpenAI配置
+1. 在Azure Portal创建OpenAI资源
+2. 部署GPT-4o模型
+3. 获取API Key和Endpoint
+4. 在GUI中配置相关信息
 
-```sh
-docker build -t markitdown:latest .
-docker run --rm -i markitdown:latest < ~/your-file.pdf > output.md
+## 🎉 项目亮点
+
+### 技术创新
+- **智能成本控制**: 业界首创的PDF图片预检测机制
+- **多模态融合**: 文本和图片内容的完美结合
+- **用户体验优化**: 现代化GUI界面设计
+
+### 实用价值
+- **成本节省**: 最多可节省90%的API调用费用
+- **效率提升**: 智能处理减少不必要的等待时间
+- **易用性**: 图形界面降低使用门槛
+
+### 开源贡献
+- **向后兼容**: 完全兼容原版MarkItDown功能
+- **模块化设计**: 可选依赖，按需安装
+- **文档完善**: 详细的使用说明和配置指南
+
+## 🔍 详细功能说明
+
+### GUI界面组件详解
+
+#### 1. 文件选择区域
+- **选择文件按钮**: 打开文件选择对话框
+- **拖拽区域**: 支持直接拖拽文件到界面
+- **文件信息显示**: 显示文件名、大小、类型
+- **格式提示**: 显示支持的文件格式列表
+
+#### 2. 智能处理选项
+- **智能PDF处理**: 启用/禁用PDF图片检测
+- **启用插件**: 支持第三方插件扩展
+- **处理策略提示**: 根据文件类型显示处理建议
+
+#### 3. 操作按钮区
+- **模型配置**: 打开Azure OpenAI配置窗口
+- **预览**: 快速预览转换效果（不使用AI）
+- **转换**: 完整转换，包含AI分析
+
+#### 4. 输出显示区
+- **Markdown预览**: 实时显示转换结果
+- **语法高亮**: 支持Markdown语法高亮显示
+- **滚动查看**: 支持大文档的滚动浏览
+
+#### 5. 状态信息栏
+- **主状态**: 显示当前操作状态
+- **详细信息**: 显示处理进度和成本信息
+- **统计数据**: 显示转换结果统计
+
+### 智能处理流程图
+
+```
+文件选择 → 类型检测 → 智能决策 → 处理执行 → 结果展示
+    ↓         ↓         ↓         ↓         ↓
+  PDF文件   图片检测   AI分析?   API调用   Markdown
+  Word文档  格式识别   基础转换   本地处理  + 图片描述
+  图片文件  内容分析   成本评估   状态更新  + 统计信息
 ```
 
-## Contributing
+### 配置文件说明
 
-This project welcomes contributions and suggestions. Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+#### markitdown_gui_config.json
+```json
+{
+  "enable_plugins": true,              // 启用插件
+  "docintel_endpoint": "",             // Document Intelligence端点
+  "azure_openai_endpoint": "...",      // Azure OpenAI端点
+  "azure_openai_api_key": "...",       // API密钥
+  "azure_openai_deployment": "...",    // 部署名称
+  "azure_openai_api_version": "...",   // API版本
+  "llm_model": "gpt-4o",              // 模型名称
+  "use_chinese_prompt": true,          // 使用中文提示词
+  "custom_prompt": "...",              // 自定义提示词
+  "smart_pdf_processing": true,        // 智能PDF处理
+  "auto_save_results": false,          // 自动保存结果
+  "preview_mode": true                 // 预览模式
+}
+```
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+## 🚨 常见问题解答
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+### Q1: 为什么选择智能PDF处理？
+**A**: 传统方案对所有PDF都调用AI分析，即使是纯文本PDF也会产生API费用。我们的智能检测可以：
+- 节省90%的不必要API调用
+- 提高处理速度
+- 降低使用成本
 
-### How to Contribute
+### Q2: 如何获取Azure OpenAI配置？
+**A**:
+1. 访问Azure Portal创建OpenAI资源
+2. 在"Keys and Endpoint"页面获取API Key和Endpoint
+3. 在"Model deployments"页面部署GPT-4o模型
+4. 记录Deployment名称用于配置
 
-You can help by looking at issues or helping review PRs. Any issue or PR is welcome, but we have also marked some as 'open for contribution' and 'open for reviewing' to help facilitate community contributions. These are ofcourse just suggestions and you are welcome to contribute in any way you like.
+### Q3: 支持哪些文件格式？
+**A**:
+- **文档**: PDF, DOCX, PPTX, XLSX, TXT, HTML
+- **图片**: JPG, PNG, GIF, BMP, TIFF
+- **音频**: MP3, WAV, M4A（需要额外配置）
+- **网页**: URL链接
 
-<div align="center">
+### Q4: 如何自定义图片描述？
+**A**: 在模型配置中可以自定义提示词，例如：
+- 技术文档：专注描述架构图和流程图
+- 学术论文：重点描述数据图表和实验结果
+- 商业报告：强调关键数据和趋势分析
 
-|            | All                                                          | Especially Needs Help from Community                                                                                                      |
-| ---------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| **Issues** | [All Issues](https://github.com/microsoft/markitdown/issues) | [Issues open for contribution](https://github.com/microsoft/markitdown/issues?q=is%3Aissue+is%3Aopen+label%3A%22open+for+contribution%22) |
-| **PRs**    | [All PRs](https://github.com/microsoft/markitdown/pulls)     | [PRs open for reviewing](https://github.com/microsoft/markitdown/pulls?q=is%3Apr+is%3Aopen+label%3A%22open+for+reviewing%22)              |
+### Q5: 处理大文件时如何优化？
+**A**:
+- 启用智能PDF处理减少不必要的AI调用
+- 使用预览功能快速查看效果
+- 对于超大文件，建议分批处理
 
-</div>
+## 🔄 版本更新记录
 
-### Running Tests and Checks
+### v1.1.0 (当前版本)
+- ✅ 新增智能PDF图片检测功能
+- ✅ 添加现代化GUI界面
+- ✅ 集成Azure OpenAI支持
+- ✅ 支持中文提示词自定义
+- ✅ 添加预览功能
+- ✅ 优化成本控制机制
 
-- Navigate to the MarkItDown package:
+### 计划中的功能
+- 🔄 批量文件处理
+- 🔄 更多AI模型支持
+- 🔄 云端配置同步
+- 🔄 处理历史记录
+- 🔄 导出格式扩展
 
-  ```sh
-  cd packages/markitdown
-  ```
+---
 
-- Install `hatch` in your environment and run tests:
+## 📞 技术支持
 
-  ```sh
-  pip install hatch  # Other ways of installing hatch: https://hatch.pypa.io/dev/install/
-  hatch shell
-  hatch test
-  ```
+如有问题或建议，请通过以下方式联系：
+- **GitHub Issues**: 提交bug报告和功能建议
+- **项目文档**: 查看详细的技术文档
+- **社区讨论**: 参与开源社区交流
 
-  (Alternative) Use the Devcontainer which has all the dependencies installed:
-
-  ```sh
-  # Reopen the project in Devcontainer and run:
-  hatch test
-  ```
-
-- Run pre-commit checks before submitting a PR: `pre-commit run --all-files`
-
-### Contributing 3rd-party Plugins
-
-You can also contribute by creating and sharing 3rd party plugins. See `packages/markitdown-sample-plugin` for more details.
-
-## Trademarks
-
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
-trademarks or logos is subject to and must follow
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+**让文档转换更智能，让AI使用更经济！** 🚀
